@@ -58,7 +58,7 @@ static/            فایل‌های CSS و JavaScript
 ابتدا پروژه را دریافت کرده و وارد پوشه پروژه شوید:
 
 ```bash
-cd UniProject
+cd "Project Name"
 ```
 
 ساخت محیط مجازی:
