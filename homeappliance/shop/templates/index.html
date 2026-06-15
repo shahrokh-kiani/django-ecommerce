@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}محصولات — فروشگاه لوازم خانگی{% endblock %}
+
+{% block content %}
+
+<div class="shop-wrapper">
+
+  <div class="shop-header">
+    <h1 class="shop-title">محصولات</h1>
+  </div>
+
+  <div class="shop-grid">
+    {% for product in products %}
+      <div class="prod-card">
+
+        <div class="prod-img">
+          {% if product.on_sale %}
+            <div class="sale-badge">تخفیف</div>
+          {% endif %}
+          {% if product.picture %}
+            <img src="{{ product.picture.url }}" alt="{{ product.name }}">
+          {% else %}
+            <i class="ti ti-photo-off"></i>
+          {% endif %}
+        </div>
+
+        <div class="prod-info">
+          <div class="prod-cat">{{ product.category.name }}</div>
+          <div class="prod-name"><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></div>
+
+          <div class="prod-rating">
+            {% if product.avg_rating %}
+              {% with score=product.avg_rating|floatformat:0 %}
+                {% for i in "12345" %}
+                  {% if forloop.counter <= score|add:"0" %}
+                    <span class="star on">★</span>
+                  {% else %}
+                    <span class="star off">★</span>
+                  {% endif %}
+                {% endfor %}
+              {% endwith %}
+            {% else %}
+              {% for i in "12345" %}
+                <span class="star off">★</span>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <div class="prod-footer">
+            <div class="prod-price">
+              {% if product.on_sale %}
+                <span class="old-price">{{ product.price|intcomma }} تومان</span>
+                <span class="new-price">{{ product.on_sale_price|intcomma }} <span class="price-label">تومان</span></span>
+              {% else %}
+                {{ product.price|intcomma }} <span class="price-label">تومان</span>
+              {% endif %}
+            </div>
+            <form method="POST" action="{% url "add_to_cart" product.pk%}">
+              {% csrf_token %}
+              <button type="submit" class="add-btn">افزودن به سبد</button>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

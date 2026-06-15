@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}فروشگاه لوازم خانگی{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <nav class="nav">
+    <div class="nav-brand">فروشگاه لوازم خانگی</div>
+    <div class="nav-links">
+      <a href="#">صفحه اصلی</a>
+      <a href="#">محصولات</a>
+      <a href="#">دسته‌بندی‌ها</a>
+      <a href="#">وبلاگ</a>
+      <a href="#">درباره ما</a>
+    </div>
+    <button class="nav-cart">
+      <i class="ti ti-shopping-cart"></i> سبد خرید
+    </button>
+  </nav>
+
+  <!-- ===== محتوای هر صفحه اینجا میاد ===== -->
+  {% block content %}{% endblock %}
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="footer-grid">
+
+      <div class="footer-col">
+        <div class="footer-brand">فروشگاه لوازم خانگی</div>
+        <p class="footer-desc">کیفیت و اعتماد در هر خرید. ما بهترین لوازم خانگی را با قیمت مناسب ارائه می‌دهیم.</p>
+        <div class="footer-social">
+          <a href="#"><i class="ti ti-brand-instagram"></i></a>
+          <a href="#"><i class="ti ti-brand-telegram"></i></a>
+          <a href="#"><i class="ti ti-brand-whatsapp"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">دسترسی سریع</div>
+        <ul class="footer-links">
+          <li><a href="#">صفحه اصلی</a></li>
+          <li><a href="#">محصولات</a></li>
+          <li><a href="#">دسته‌بندی‌ها</a></li>
+          <li><a href="#">وبلاگ</a></li>
+          <li><a href="#">درباره ما</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">حساب کاربری</div>
+        <ul class="footer-links">
+          <li><a href="#">ورود به حساب</a></li>
+          <li><a href="#">ثبت‌نام</a></li>
+          <li><a href="#">سفارش‌های من</a></li>
+          <li><a href="#">پروفایل</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">تماس با ما</div>
+        <ul class="footer-links">
+          <li><i class="ti ti-phone"></i> ۰۲۱-۱۲۳۴۵۶۷۸</li>
+          <li><i class="ti ti-mail"></i> info@store.ir</li>
+          <li><i class="ti ti-map-pin"></i> تهران، ایران</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>تمامی حقوق محفوظ است &copy; ۱۴۰۴</span>
+      <span>طراحی و توسعه توسط <strong>شاهرخ کیانی</strong></span>
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+
+</body>
+</html>

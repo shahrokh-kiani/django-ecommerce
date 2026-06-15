@@ -1,0 +1,626 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}پروفایل — فروشگاه لوازم خانگی{% endblock %}
+
+{% block content %}
+
+<div class="profile-wrapper">
+
+  <!-- سایدبار -->
+  <div class="profile-sidebar">
+    <div class="profile-sidebar-user">
+      <div class="profile-sidebar-name">{{ user.get_full_name|default:user.username }}</div>
+      <div class="profile-sidebar-username">@{{ user.username }}</div>
+    </div>
+
+    <nav class="profile-nav">
+      <a href="#info" class="profile-nav-item active" data-section="info">
+        <i class="ti ti-user"></i> اطلاعات شخصی
+      </a>
+      <a href="#orders" class="profile-nav-item" data-section="orders">
+        <i class="ti ti-shopping-bag"></i> سفارش‌های من
+      </a>
+      <a href="#address" class="profile-nav-item" data-section="address">
+        <i class="ti ti-map-pin"></i> آدرس
+      </a>
+      <a href="#password" class="profile-nav-item" data-section="password">
+        <i class="ti ti-lock"></i> تغییر رمز عبور
+      </a>
+    </nav>
+  </div>
+
+  <!-- محتوا -->
+  <div class="profile-content">
+
+    <!-- پیام‌ها -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="profile-message profile-message-{{ message.tags }}">
+          <i class="ti {% if message.tags == 'success' %}ti-circle-check{% else %}ti-alert-circle{% endif %}"></i>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- اطلاعات شخصی -->
+    <div class="profile-section active" id="section-info">
+      <div class="profile-section-header">
+        <h2 class="profile-section-title">اطلاعات شخصی</h2>
+        <p class="profile-section-desc">نام، ایمیل و شماره تماس خود را ویرایش کنید</p>
+      </div>
+
+      <form method="POST" class="profile-form">
+        {% csrf_token %}
+        <input type="hidden" name="section" value="info">
+
+        <div class="profile-form-row">
+          <div class="form-group">
+            <label>نام</label>
+            <div class="input-wrapper">
+              <i class="ti ti-user"></i>
+              <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="نام">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>نام خانوادگی</label>
+            <div class="input-wrapper">
+              <i class="ti ti-user"></i>
+              <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="نام خانوادگی">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>ایمیل</label>
+          <div class="input-wrapper">
+            <i class="ti ti-mail"></i>
+            <input type="email" name="email" value="{{ user.email }}" placeholder="ایمیل">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>شماره موبایل</label>
+          <div class="input-wrapper">
+            <i class="ti ti-phone"></i>
+            <input type="text" name="phone" value="{{ customer.phone }}" placeholder="09xxxxxxxxx">
+          </div>
+        </div>
+
+        <div class="profile-form-footer">
+          <button type="submit" class="profile-save-btn">ذخیره تغییرات</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- سفارش‌ها -->
+    <div class="profile-section" id="section-orders">
+      <div class="profile-section-header">
+        <h2 class="profile-section-title">سفارش‌های من</h2>
+        <p class="profile-section-desc">تاریخچه سفارش‌های شما</p>
+      </div>
+
+      {% if orders %}
+        <div class="orders-list">
+          {% for order in orders %}
+            <div class="order-card">
+              <div class="order-card-header">
+                <div class="order-info">
+                  <span class="order-id"># سفارش {{ order.id }}</span>
+                  <span class="order-date">{{ order.order_date|date:"Y/m/d" }}</span>
+                </div>
+                <div class="order-status {% if order.status %}order-status-done{% else %}order-status-pending{% endif %}">
+                  {% if order.status %}
+                    <i class="ti ti-circle-check"></i> تحویل داده شده
+                  {% else %}
+                    <i class="ti ti-clock"></i> در حال پردازش
+                  {% endif %}
+                </div>
+              </div>
+              <div class="order-card-body">
+                <div class="order-product-name">{{ order.product.name }}</div>
+                <div class="order-product-details">
+                  <span>تعداد: {{ order.quantity }}</span>
+                  <span class="order-divider">·</span>
+                  <span>{{ order.city }}، {{ order.province }}</span>
+                </div>
+              </div>
+              <div class="order-card-footer">
+                <a href="{% url 'product_detail' order.product.pk %}" class="order-product-link">
+                  مشاهده محصول <i class="ti ti-arrow-left"></i>
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="orders-empty">
+          <i class="ti ti-shopping-bag-x"></i>
+          <p>هنوز سفارشی ثبت نکرده‌اید</p>
+          <a href="{% url 'shop_main_page' %}" class="profile-save-btn" style="text-decoration:none; display:inline-block;">رفتن به فروشگاه</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- آدرس -->
+    <div class="profile-section" id="section-address">
+      <div class="profile-section-header">
+        <h2 class="profile-section-title">آدرس</h2>
+        <p class="profile-section-desc">آدرس پیش‌فرض برای ارسال سفارش‌ها</p>
+      </div>
+
+      <form method="POST" class="profile-form">
+        {% csrf_token %}
+        <input type="hidden" name="section" value="address">
+
+        <div class="profile-form-row">
+          <div class="form-group">
+            <label>استان</label>
+            <div class="input-wrapper">
+              <i class="ti ti-map"></i>
+              <input type="text" name="province" value="{{ customer.province }}" placeholder="استان">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>شهر</label>
+            <div class="input-wrapper">
+              <i class="ti ti-building"></i>
+              <input type="text" name="city" value="{{ customer.city }}" placeholder="شهر">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>آدرس کامل</label>
+          <div class="input-wrapper input-wrapper-textarea">
+            <i class="ti ti-map-pin"></i>
+            <textarea name="address" placeholder="خیابان، کوچه، پلاک...">{{ customer.address }}</textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>کد پستی</label>
+          <div class="input-wrapper">
+            <i class="ti ti-hash"></i>
+            <input type="text" name="postal_code" value="{{ customer.postal_code }}" placeholder="کد پستی ۱۰ رقمی">
+          </div>
+        </div>
+
+        <div class="profile-form-footer">
+          <button type="submit" class="profile-save-btn">ذخیره آدرس</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- تغییر رمز -->
+    <div class="profile-section" id="section-password">
+      <div class="profile-section-header">
+        <h2 class="profile-section-title">تغییر رمز عبور</h2>
+        <p class="profile-section-desc">برای امنیت بیشتر رمز عبور خود را به‌روز کنید</p>
+      </div>
+
+      <form method="POST" class="profile-form">
+        {% csrf_token %}
+        <input type="hidden" name="section" value="password">
+
+        <div class="form-group">
+          <label>رمز عبور فعلی</label>
+          <div class="input-wrapper">
+            <i class="ti ti-lock"></i>
+            <input type="password" name="old_password" placeholder="رمز عبور فعلی را وارد کنید">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>رمز عبور جدید</label>
+          <div class="input-wrapper">
+            <i class="ti ti-lock-plus"></i>
+            <input type="password" name="new_password" placeholder="حداقل ۶ کاراکتر">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>تکرار رمز عبور جدید</label>
+          <div class="input-wrapper">
+            <i class="ti ti-lock-check"></i>
+            <input type="password" name="confirm_password" placeholder="رمز عبور جدید را تکرار کنید">
+          </div>
+        </div>
+
+        <div class="profile-form-footer">
+          <button type="submit" class="profile-save-btn">تغییر رمز عبور</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+.profile-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.profile-sidebar {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  overflow: hidden;
+  position: sticky;
+  top: 80px;
+}
+
+.profile-sidebar-user {
+  background: linear-gradient(135deg, #0A3D6B, #185FA5);
+  padding: 1.8rem 1.5rem;
+  text-align: center;
+}
+
+.profile-sidebar-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.profile-sidebar-username {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+}
+
+.profile-nav {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.profile-nav-item:hover {
+  background: #F8FAFC;
+  color: #378ADD;
+}
+
+.profile-nav-item.active {
+  background: #EBF4FF;
+  color: #378ADD;
+  font-weight: 500;
+}
+
+.profile-nav-item i { font-size: 16px; }
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.profile-message-success {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #16A34A;
+}
+
+.profile-message-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+}
+
+.profile-section {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 2rem;
+  display: none;
+}
+
+.profile-section.active { display: block; }
+
+.profile-section-header {
+  margin-bottom: 1.8rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-section-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.profile-section-desc {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.profile-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper i {
+  position: absolute;
+  right: 12px;
+  color: #9ca3af;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 10px 38px 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Vazirmatn', sans-serif;
+  color: #111827;
+  background: #F9FAFB;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  direction: rtl;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #378ADD;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.1);
+}
+
+.input-wrapper input::placeholder { color: #d1d5db; font-size: 13px; }
+
+.input-wrapper-textarea { align-items: flex-start; }
+.input-wrapper-textarea i { top: 12px; }
+
+.input-wrapper textarea {
+  width: 100%;
+  padding: 10px 38px 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Vazirmatn', sans-serif;
+  color: #111827;
+  background: #F9FAFB;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  direction: rtl;
+  resize: vertical;
+  min-height: 90px;
+}
+
+.input-wrapper textarea:focus {
+  outline: none;
+  border-color: #378ADD;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.1);
+}
+
+.input-wrapper textarea::placeholder { color: #d1d5db; font-size: 13px; }
+
+.profile-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.profile-save-btn {
+  background: #378ADD;
+  color: #fff;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Vazirmatn', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(55, 138, 221, 0.3);
+}
+
+.profile-save-btn:hover {
+  background: #185FA5;
+  transform: translateY(-1px);
+}
+
+/* ===== Orders ===== */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.order-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.order-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-id {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.order-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.order-status {
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.order-status-done {
+  background: #F0FDF4;
+  color: #16A34A;
+}
+
+.order-status-pending {
+  background: #FFF7ED;
+  color: #EA580C;
+}
+
+.order-card-body {
+  padding: 14px 16px;
+}
+
+.order-product-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.order-product-details {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-divider { color: #d1d5db; }
+
+.order-card-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.order-product-link {
+  font-size: 12px;
+  color: #378ADD;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-product-link:hover { text-decoration: underline; }
+
+.orders-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.orders-empty i { font-size: 48px; }
+.orders-empty p { font-size: 14px; }
+
+@media (max-width: 768px) {
+  .profile-wrapper { grid-template-columns: 1fr; }
+  .profile-sidebar { position: static; }
+  .profile-form-row { grid-template-columns: 1fr; }
+}
+
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const navItems = document.querySelectorAll('.profile-nav-item');
+  const sections = document.querySelectorAll('.profile-section');
+
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      const sectionId = 'section-' + this.dataset.section;
+      navItems.forEach(i => i.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById(sectionId).classList.add('active');
+    });
+  });
+
+  {% if messages %}
+    {% for message in messages %}
+      {% if 'رمز' in message.message %}
+        document.querySelector('[data-section="password"]').click();
+      {% elif 'آدرس' in message.message %}
+        document.querySelector('[data-section="address"]').click();
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</script>
+{% endblock %}

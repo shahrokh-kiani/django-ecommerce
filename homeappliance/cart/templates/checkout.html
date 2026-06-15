@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تکمیل سفارش{% endblock %}
+
+{% block content %}
+
+<div class="checkout-page">
+
+    <div class="checkout-header">
+        <h1>تکمیل سفارش</h1>
+        <p>لطفاً اطلاعات ارسال سفارش را با دقت وارد کنید.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="checkout-message checkout-message-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="checkout-layout">
+
+        <div class="checkout-form-box">
+            <h2>اطلاعات ارسال</h2>
+
+            <form method="POST" class="checkout-form">
+                {% csrf_token %}
+
+                <div class="checkout-row">
+    <div class="checkout-field">
+        <label for="province">استان</label>
+        <input
+            type="text"
+            id="province"
+            name="province"
+            {% if customer.province %}
+                value="{{ customer.province }}"
+            {% endif %}
+            placeholder="نام استان خود را وارد کنید"
+            required
+        >
+    </div>
+
+    <div class="checkout-field">
+        <label for="city">شهر</label>
+        <input
+            type="text"
+            id="city"
+            name="city"
+            {% if customer.city %}
+                value="{{ customer.city }}"
+            {% endif %}
+            placeholder="نام شهر خود را وارد کنید"
+            required
+        >
+    </div>
+</div>
+
+<div class="checkout-field">
+    <label for="address">آدرس کامل</label>
+    <textarea
+        id="address"
+        name="address"
+        placeholder="آدرس کامل محل تحویل سفارش را وارد کنید"
+        required
+>{% if customer.address %}{{ customer.address }}{% endif %}</textarea>
+</div>
+
+<div class="checkout-row">
+    <div class="checkout-field">
+        <label for="postal_code">کد پستی</label>
+        <input
+            type="text"
+            id="postal_code"
+            name="postal_code"
+            placeholder="کد پستی خود را وارد کنید"
+        >
+    </div>
+
+    <div class="checkout-field">
+        <label for="phone">شماره تماس</label>
+        <input
+            type="text"
+            id="phone"
+            name="phone"
+            {% if customer.phone %}
+                value="{{ customer.phone }}"
+            {% endif %}
+            placeholder="شماره تماس خود را وارد کنید"
+            required
+        >
+    </div>
+</div>
+
+                <button type="submit" class="checkout-submit">
+                    ثبت نهایی سفارش
+                </button>
+            </form>
+        </div>
+
+        <div class="checkout-summary-box">
+            <h2>خلاصه سفارش</h2>
+
+            <div class="checkout-summary-items">
+                {% for item in items %}
+                    <div class="checkout-summary-item">
+                        <div>
+                            <strong>{{ item.product.name }}</strong>
+                            <span>تعداد: {{ item.quantity }}</span>
+                        </div>
+                        <div>
+                            {{ item.get_subtotal|intcomma }} تومان
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="checkout-total">
+                <span>مبلغ کل</span>
+                <strong>{{ total|intcomma }} تومان</strong>
+            </div>
+
+            <div class="checkout-note">
+                پرداخت در این پروژه به‌صورت شبیه‌سازی‌شده است و سفارش پس از ثبت در سیستم ذخیره می‌شود.
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    .checkout-page {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        direction: rtl;
+    }
+
+    .checkout-header {
+        margin-bottom: 24px;
+    }
+
+    .checkout-header h1 {
+        font-size: 28px;
+        margin-bottom: 8px;
+        color: #1f2937;
+    }
+
+    .checkout-header p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .checkout-layout {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .checkout-form-box,
+    .checkout-summary-box {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .checkout-form-box h2,
+    .checkout-summary-box h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #111827;
+    }
+
+    .checkout-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .checkout-field {
+        margin-bottom: 18px;
+    }
+
+    .checkout-field label {
+        display: block;
+        margin-bottom: 8px;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .checkout-field input,
+    .checkout-field textarea {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #111827;
+        background: #f9fafb;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .checkout-field textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .checkout-field input:focus,
+    .checkout-field textarea:focus {
+        border-color: #2563eb;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .checkout-submit {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 20px;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .checkout-submit:hover {
+        background: #1d4ed8;
+    }
+
+    .checkout-summary-items {
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .checkout-summary-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .checkout-summary-item strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #111827;
+    }
+
+    .checkout-summary-item span {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .checkout-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+
+    .checkout-total strong {
+        color: #2563eb;
+        font-size: 18px;
+    }
+
+    .checkout-note {
+        background: #f3f4f6;
+        color: #4b5563;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+
+    .checkout-message {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        font-size: 14px;
+    }
+
+    .checkout-message-error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .checkout-message-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    @media (max-width: 900px) {
+        .checkout-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .checkout-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
+
+{% endblock %}
