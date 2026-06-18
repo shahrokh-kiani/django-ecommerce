@@ -119,11 +119,16 @@
                 </div>
               </div>
               <div class="order-card-body">
-                <div class="order-product-name">{{ order.product.name }}</div>
+                {% for item in order.items.all %}
+                    <div class="order-item-row">
+                      <a href="{% url 'product_detail' item.product.pk %}" class="order-product-name"></a>
+                      <span class="order-item-qty">× {{ item.quantity }}</span>
+                    </div>
+                {% endfor %}
                 <div class="order-product-details">
-                  <span>تعداد: {{ order.quantity }}</span>
-                  <span class="order-divider">·</span>
-                  <span>{{ order.city }}، {{ order.province }}</span>
+                    <span>{{ order.city }}، {{ order.province }}</span>
+                    <span class="order-divider">·</span>
+                    <span>جمع کل: {{ order.get_total_price|intcomma }} تومان</span>
                 </div>
               </div>
               <div class="order-card-footer">
@@ -587,6 +592,28 @@
 
 .orders-empty i { font-size: 48px; }
 .orders-empty p { font-size: 14px; }
+
+.order-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.order-item-row .order-product-name {
+  color: #378ADD;
+  text-decoration: none;
+}
+
+.order-item-row .order-product-name:hover {
+  text-decoration: underline;
+}
+
+.order-item-qty {
+  color: #9ca3af;
+  font-size: 12px;
+}
 
 @media (max-width: 768px) {
   .profile-wrapper { grid-template-columns: 1fr; }
