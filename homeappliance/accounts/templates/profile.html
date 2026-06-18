@@ -121,7 +121,7 @@
               <div class="order-card-body">
                 {% for item in order.items.all %}
                     <div class="order-item-row">
-                      <a href="{% url 'product_detail' item.product.pk %}" class="order-product-name"></a>
+                      <a href="{% url 'product_detail' item.product.pk %}" class="order-product-name">{{ item.product.name }}</a>
                       <span class="order-item-qty">× {{ item.quantity }}</span>
                     </div>
                 {% endfor %}
@@ -130,11 +130,6 @@
                     <span class="order-divider">·</span>
                     <span>جمع کل: {{ order.get_total_price|intcomma }} تومان</span>
                 </div>
-              </div>
-              <div class="order-card-footer">
-                <a href="{% url 'product_detail' order.product.pk %}" class="order-product-link">
-                  مشاهده محصول <i class="ti ti-arrow-left"></i>
-                </a>
               </div>
             </div>
           {% endfor %}
