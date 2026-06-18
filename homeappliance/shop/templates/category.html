@@ -73,7 +73,10 @@
                   {{ product.price|intcomma }} <span class="price-label">تومان</span>
                 {% endif %}
               </div>
-              <button class="add-btn">افزودن به سبد</button>
+              <form method="POST" action="{% url "add_to_cart" product.pk%}">
+                {% csrf_token %}
+                <button type="submit" class="add-btn">افزودن به سبد</button>
+              </form>
             </div>
           </div>
 
