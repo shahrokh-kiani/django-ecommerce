@@ -1,6 +1,7 @@
 from django.db import models
 
 from accounts.models import Customer
+from django.contrib.admin import display
 
 class Category(models.Model):
     name = models.CharField(max_length=40)
@@ -25,9 +26,6 @@ class Product(models.Model):
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
-    quantity = models.IntegerField(default=1)
-
     address = models.CharField(max_length=200, default='', blank=False)
     province = models.CharField(max_length=35, default='', blank=False)
     city = models.CharField(max_length=30, default='', blank=False)
@@ -36,9 +34,11 @@ class Order(models.Model):
     order_date = models.DateTimeField(auto_now_add=True)
     status = models.BooleanField(default=False)
 
+
     def get_total_price(self):
         return sum(item.get_subtotal() for item in self.items.all())
 
+    @display(description='تعداد کل')
     def get_total_quantity(self):
         return sum(item.quantity for item in self.items.all())
 

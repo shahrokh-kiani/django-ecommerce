@@ -17,7 +17,7 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['customer', 'product', 'quantity', 'order_date', 'status']
+    list_display = ['customer', 'get_total_quantity', 'order_date', 'status']
     inlines = [OrderItemInline]
 
 @admin.register(Rating)
