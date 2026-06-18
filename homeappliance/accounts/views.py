@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from shop.models import Order
 
 from .models import Customer
 from django.contrib import messages
-from shop.models import Order
+from cart.views import merge_session_cart_to_db
 
 def register_view(request):
     if request.method == 'POST':
@@ -25,6 +26,7 @@ def register_view(request):
         )
         Customer.objects.create(user=user)
         login(request, user)
+        merge_session_cart_to_db(request)
         return redirect('shop_main_page')
 
     return render(request, 'register.html')
@@ -37,6 +39,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            merge_session_cart_to_db(request)
             messages.success(request, 'ورود با موفقیت انجام شد.')
             return redirect('shop_main_page')
         else:
