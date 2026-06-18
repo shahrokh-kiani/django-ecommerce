@@ -75,6 +75,9 @@
             type="text"
             id="postal_code"
             name="postal_code"
+            {% if customer.postal_code %}
+                value="{{ customer.postal_code }}"
+            {% endif %}
             placeholder="کد پستی خود را وارد کنید"
         >
     </div>
