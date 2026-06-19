@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>لیست سفارش‌ها</h1>
+<table border="1">
+  <tr>
+    <th>شماره</th>
+    <th>مشتری</th>
+    <th>تاریخ</th>
+    <th>وضعیت</th>
+    <th>عملیات</th>
+  </tr>
+  {% for order in orders %}
+  <tr>
+    <td>{{ order.id }}</td>
+    <td>{{ order.customer.user.username }}</td>
+    <td>{{ order.order_date|date:"Y/m/d" }}</td>
+    <td>{% if order.status %}تحویل شده{% else %}در حال پردازش{% endif %}</td>
+    <td>
+      <form method="POST" action="{% url 'dashboard:order_toggle_status' order.pk %}">
+        {% csrf_token %}
+        <button type="submit">تغییر وضعیت</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
