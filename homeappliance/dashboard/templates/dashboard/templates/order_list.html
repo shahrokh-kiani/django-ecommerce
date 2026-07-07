@@ -1,0 +1,529 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مدیریت سفارش‌ها | داشبورد</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --navy:       #0A3D6B;
+      --navy-deep:  #062444;
+      --blue:       #378ADD;
+      --blue-soft:  #5FA3E8;
+      --amber:      #F2A93B;
+      --green:      #2FB374;
+      --green-pale: #F0FBF5;
+      --red:        #E9596B;
+      --red-pale:   #FFF0F2;
+      --ink:        #0F172A;
+      --paper:      #F4F7FB;
+      --line:       #E4E9F1;
+      --muted:      #64748B;
+      --white:      #FFFFFF;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ===== Topbar (same as home) ===== */
+    .db-topbar {
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+      color: var(--white);
+      padding: 22px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .db-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .db-brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--blue-soft);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .db-brand-text .db-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 2px;
+    }
+
+    .db-brand-text .db-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .db-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .db-back-link {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .db-back-link:hover { color: var(--white); }
+
+    .db-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 7px 14px 7px 8px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .db-user-chip .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* ===== Page ===== */
+    .db-wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 36px 60px;
+    }
+
+    .db-page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .db-page-head-left h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 4px;
+    }
+
+    .db-page-head-left p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .db-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .db-breadcrumb:hover { color: var(--blue); }
+
+    /* ===== Messages ===== */
+    .db-messages {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .db-msg {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .db-msg.success { background: var(--green-pale); color: #166534; border: 1px solid #BBF7D0; }
+    .db-msg.error   { background: var(--red-pale);   color: #9B1C1C; border: 1px solid #FECACA; }
+
+    /* ===== Table card ===== */
+    .db-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .db-card-head {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .db-card-head-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+    }
+
+    .db-count-badge {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: var(--paper);
+      padding: 13px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--line);
+      transition: background 0.12s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FAFBFD; }
+
+    tbody td {
+      padding: 14px 20px;
+      font-size: 13.5px;
+      vertical-align: middle;
+    }
+
+    .order-id {
+      font-weight: 700;
+      color: var(--blue);
+      font-size: 13px;
+    }
+
+    .customer-name {
+      font-weight: 600;
+    }
+
+    .customer-city {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .order-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .order-item-row {
+      font-size: 12.5px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .order-item-qty {
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .order-price {
+      font-weight: 700;
+      font-size: 13.5px;
+      white-space: nowrap;
+    }
+
+    .order-date {
+      font-size: 12.5px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-badge.done {
+      background: var(--green-pale);
+      color: #166534;
+    }
+
+    .status-badge.pending {
+      background: #FFFBEB;
+      color: #92400E;
+      border: 1px solid #FDE68A;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Toggle button */
+    .btn-toggle {
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-toggle.to-done {
+      background: var(--green-pale);
+      color: #166534;
+    }
+
+    .btn-toggle.to-done:hover {
+      background: #DCFCE7;
+    }
+
+    .btn-toggle.to-pending {
+      background: var(--red-pale);
+      color: #9B1C1C;
+    }
+
+    .btn-toggle.to-pending:hover {
+      background: #FEE2E2;
+    }
+
+    /* Empty state */
+    .db-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .db-empty i {
+      font-size: 48px;
+      margin-bottom: 12px;
+      display: block;
+      color: var(--line);
+    }
+
+    /* Responsive */
+    @media (max-width: 880px) {
+      .db-topbar { padding: 18px 20px; }
+      .db-wrap { padding: 24px 16px 50px; }
+      thead th:nth-child(4),
+      tbody td:nth-child(4) { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      thead th:nth-child(3),
+      tbody td:nth-child(3) { display: none; }
+      .db-topbar-right .db-back-link span { display: none; }
+    }
+
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="db-topbar">
+    <div class="db-brand">
+      <div class="db-brand-icon"><i class="ti ti-layout-dashboard"></i></div>
+      <div class="db-brand-text">
+        <div class="db-eyebrow">پنل مدیریت</div>
+        <div class="db-title">فروشگاه لوازم خانگی</div>
+      </div>
+    </div>
+    <div class="db-topbar-right">
+      <a href="{% url 'landing' %}" class="db-back-link">
+        <i class="ti ti-external-link"></i>
+        <span>بازگشت به سایت</span>
+      </a>
+      <div class="db-user-chip">
+        <div class="avatar">{{ request.user.username|first|upper }}</div>
+        {{ request.user.username }}
+      </div>
+    </div>
+  </div>
+
+  <div class="db-wrap">
+
+    <div class="db-page-head">
+      <div class="db-page-head-left">
+        <h1>مدیریت سفارش‌ها</h1>
+        <p>وضعیت سفارش‌ها را مشاهده و تغییر دهید</p>
+      </div>
+      <a href="{% url 'dashboard:home' %}" class="db-breadcrumb">
+        <i class="ti ti-arrow-right"></i>
+        بازگشت به داشبورد
+      </a>
+    </div>
+
+    {% if messages %}
+      <div class="db-messages">
+        {% for message in messages %}
+          <div class="db-msg {{ message.tags }}">
+            <i class="ti ti-{% if message.tags == 'success' %}circle-check{% else %}alert-circle{% endif %}"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="db-card">
+      <div class="db-card-head">
+        <div class="db-card-head-title">
+          <i class="ti ti-receipt-2"></i>
+          لیست سفارش‌ها
+        </div>
+        <span class="db-count-badge">{{ orders|length }} سفارش</span>
+      </div>
+
+      {% if orders %}
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>مشتری</th>
+            <th>اقلام سفارش</th>
+            <th>مبلغ کل</th>
+            <th>تاریخ</th>
+            <th>وضعیت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td><span class="order-id">#{{ order.id }}</span></td>
+
+            <td>
+              <div class="customer-name">{{ order.customer.user.get_full_name|default:order.customer.user.username }}</div>
+              <div class="customer-city">{{ order.city }}{% if order.province %}، {{ order.province }}{% endif %}</div>
+            </td>
+
+            <td>
+              <div class="order-items-list">
+                {% for item in order.items.all %}
+                  <div class="order-item-row">
+                    <span>{{ item.product.name }}</span>
+                    <span class="order-item-qty">× {{ item.quantity }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            </td>
+
+            <td>
+              <span class="order-price">{{ order.get_total_price|intcomma }} تومان</span>
+            </td>
+
+            <td>
+              <span class="order-date">{{ order.order_date|date:"Y/m/d" }}</span>
+            </td>
+
+            <td>
+              {% if order.status %}
+                <span class="status-badge done">
+                  <span class="status-dot"></span>
+                  تحویل شده
+                </span>
+              {% else %}
+                <span class="status-badge pending">
+                  <span class="status-dot"></span>
+                  در حال پردازش
+                </span>
+              {% endif %}
+            </td>
+
+            <td>
+              <form method="POST" action="{% url 'dashboard:order_toggle_status' order.pk %}">
+                {% csrf_token %}
+                {% if order.status %}
+                  <button type="submit" class="btn-toggle to-pending">
+                    <i class="ti ti-refresh"></i>
+                    برگشت به پردازش
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn-toggle to-done">
+                    <i class="ti ti-check"></i>
+                    تحویل شد
+                  </button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="db-empty">
+          <i class="ti ti-receipt-off"></i>
+          <p>هیچ سفارشی ثبت نشده است.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -16,13 +16,13 @@ def dashboard_home(request):
         'product_count': Product.objects.count(),
         'category_count': Category.objects.count(),
     }
-    return render(request, 'home.html', context)
+    return render(request, 'dashboard/home.html', context)
 
 
 @user_passes_test(is_staff_user, login_url='login')
 def order_list(request):
     orders = Order.objects.all().order_by('-order_date')
-    return render(request, 'order_list.html', {'orders': orders})
+    return render(request, 'dashboard/order_list.html', {'orders': orders})
 
 
 @user_passes_test(is_staff_user, login_url='login')
