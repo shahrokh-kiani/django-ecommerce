@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
+
 from shop.models import Order
+
 
 from .models import Customer
 from django.contrib import messages
@@ -96,6 +98,7 @@ def profile_view(request):
             else:
                 request.user.set_password(new_password)
                 request.user.save()
+                update_session_auth_hash(request, request.user)
                 messages.success(request, 'رمز عبور با موفقیت تغییر کرد')
 
         return redirect('profile')
