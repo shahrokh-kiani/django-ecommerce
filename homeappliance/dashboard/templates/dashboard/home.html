@@ -1,27 +1,427 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>لیست سفارش‌ها</h1>
-<table border="1">
-  <tr>
-    <th>شماره</th>
-    <th>مشتری</th>
-    <th>تاریخ</th>
-    <th>وضعیت</th>
-    <th>عملیات</th>
-  </tr>
-  {% for order in orders %}
-  <tr>
-    <td>{{ order.id }}</td>
-    <td>{{ order.customer.user.username }}</td>
-    <td>{{ order.order_date|date:"Y/m/d" }}</td>
-    <td>{% if order.status %}تحویل شده{% else %}در حال پردازش{% endif %}</td>
-    <td>
-      <form method="POST" action="{% url 'dashboard:order_toggle_status' order.pk %}">
-        {% csrf_token %}
-        <button type="submit">تغییر وضعیت</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-{% endblock %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>داشبورد مدیریت | فروشگاه لوازم خانگی</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --navy:       #0A3D6B;
+      --navy-deep:  #062444;
+      --blue:       #378ADD;
+      --blue-soft:  #5FA3E8;
+      --amber:      #F2A93B;
+      --green:      #2FB374;
+      --green-pale: #F0FBF5;
+      --red:        #E9596B;
+      --red-pale:   #FFF0F2;
+      --ink:        #0F172A;
+      --paper:      #F4F7FB;
+      --line:       #E4E9F1;
+      --muted:      #64748B;
+      --white:      #FFFFFF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Topbar ===== */
+    .db-topbar {
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+      color: var(--white);
+      padding: 22px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .db-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .db-brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      color: var(--blue-soft);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .db-brand-text .db-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 2px;
+    }
+
+    .db-brand-text .db-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .db-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .db-back-link {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .db-back-link:hover { color: var(--white); }
+
+    .db-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 14px 6px 8px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .db-user-chip .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* ===== Main ===== */
+    .db-wrap {
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 44px 36px 64px;
+      flex: 1;
+    }
+
+    /* ===== Welcome ===== */
+    .db-welcome {
+      margin-bottom: 36px;
+    }
+
+    .db-welcome h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .db-welcome p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* ===== Stat grid ===== */
+    .db-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    .db-stat {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+
+    .db-stat:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 32px -16px rgba(10,61,107,0.22);
+    }
+
+    .db-stat.alert {
+      border-color: rgba(233,89,107,0.35);
+      background: linear-gradient(160deg, #FFF5F6 0%, var(--white) 60%);
+    }
+
+    .db-stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .db-stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .ic-blue   { background: rgba(55,138,221,0.11); color: var(--blue); }
+    .ic-amber  { background: rgba(242,169,59,0.14); color: var(--amber); }
+    .ic-green  { background: rgba(47,179,116,0.12); color: var(--green); }
+    .ic-red    { background: rgba(233,89,107,0.12); color: var(--red); }
+
+    .pulse {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--red);
+      position: relative;
+    }
+    .pulse::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid var(--red);
+      opacity: 0;
+      animation: ripple 1.8s ease-out infinite;
+    }
+    @keyframes ripple {
+      0%  { transform: scale(0.5); opacity: 0.6; }
+      100%{ transform: scale(2.0); opacity: 0; }
+    }
+
+    .db-stat-value {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 7px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .db-stat-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ===== Section label ===== */
+    .db-section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .db-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    /* ===== Action cards ===== */
+    .db-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .db-action {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+
+    .db-action:hover {
+      border-color: var(--blue);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px -12px rgba(55,138,221,0.3);
+    }
+
+    .db-action-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      background: var(--navy);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+
+    .db-action-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .db-action-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .db-action-arrow {
+      font-size: 12.5px;
+      color: var(--blue);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 960px) {
+      .db-stats   { grid-template-columns: repeat(2, 1fr); }
+      .db-actions { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      .db-topbar  { padding: 16px 18px; }
+      .db-wrap    { padding: 28px 18px 50px; }
+      .db-stats   { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .db-actions { grid-template-columns: 1fr; }
+      .db-back-link span { display: none; }
+    }
+
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .db-stat, .db-action, .pulse::after { animation: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="db-topbar">
+    <div class="db-brand">
+      <div class="db-brand-icon"><i class="ti ti-layout-dashboard"></i></div>
+      <div class="db-brand-text">
+        <div class="db-eyebrow">پنل مدیریت</div>
+        <div class="db-title">فروشگاه لوازم خانگی</div>
+      </div>
+    </div>
+    <div class="db-topbar-right">
+      <a href="{% url 'landing' %}" class="db-back-link">
+        <i class="ti ti-external-link"></i>
+        <span>مشاهده سایت</span>
+      </a>
+      <div class="db-user-chip">
+        <div class="avatar">{{ request.user.username|first|upper }}</div>
+        {{ request.user.username }}
+      </div>
+    </div>
+  </div>
+
+  <div class="db-wrap">
+
+    <div class="db-welcome">
+      <h1>سلام، {{ request.user.first_name|default:request.user.username }} 👋</h1>
+      <p>خلاصه‌ای از وضعیت فروشگاه را اینجا می‌بینید.</p>
+    </div>
+
+    <div class="db-stats">
+
+      <div class="db-stat">
+        <div class="db-stat-top">
+          <div class="db-stat-icon ic-blue"><i class="ti ti-receipt"></i></div>
+        </div>
+        <div class="db-stat-value">{{ order_count|intcomma }}</div>
+        <div class="db-stat-label">کل سفارش‌ها</div>
+      </div>
+
+      <div class="db-stat {% if pending_count > 0 %}alert{% endif %}">
+        <div class="db-stat-top">
+          <div class="db-stat-icon ic-amber"><i class="ti ti-clock-hour-4"></i></div>
+          {% if pending_count > 0 %}<div class="pulse"></div>{% endif %}
+        </div>
+        <div class="db-stat-value">{{ pending_count|intcomma }}</div>
+        <div class="db-stat-label">در حال پردازش</div>
+      </div>
+
+      <div class="db-stat">
+        <div class="db-stat-top">
+          <div class="db-stat-icon ic-green"><i class="ti ti-package"></i></div>
+        </div>
+        <div class="db-stat-value">{{ product_count|intcomma }}</div>
+        <div class="db-stat-label">محصولات</div>
+      </div>
+
+      <div class="db-stat">
+        <div class="db-stat-top">
+          <div class="db-stat-icon ic-red"><i class="ti ti-category-2"></i></div>
+        </div>
+        <div class="db-stat-value">{{ category_count|intcomma }}</div>
+        <div class="db-stat-label">دسته‌بندی‌ها</div>
+      </div>
+
+    </div>
+
+    <div class="db-section-label">دسترسی سریع</div>
+
+    <div class="db-actions">
+
+      <a href="{% url 'dashboard:order_list' %}" class="db-action">
+        <div class="db-action-icon"><i class="ti ti-receipt-2"></i></div>
+        <div class="db-action-title">مدیریت سفارش‌ها</div>
+        <div class="db-action-desc">مشاهده لیست کامل سفارش‌ها و تغییر وضعیت آن‌ها به تحویل‌شده یا در حال پردازش</div>
+        <div class="db-action-arrow">مشاهده <i class="ti ti-arrow-left"></i></div>
+      </a>
+
+      <a href="/admin/shop/product/" class="db-action">
+        <div class="db-action-icon"><i class="ti ti-shopping-bag"></i></div>
+        <div class="db-action-title">مدیریت محصولات</div>
+        <div class="db-action-desc">افزودن محصول جدید، ویرایش قیمت و توضیحات، تنظیم تخفیف و آپلود تصویر</div>
+        <div class="db-action-arrow">مشاهده <i class="ti ti-arrow-left"></i></div>
+      </a>
+
+      <a href="/admin/shop/category/" class="db-action">
+        <div class="db-action-icon"><i class="ti ti-tags"></i></div>
+        <div class="db-action-title">مدیریت دسته‌بندی‌ها</div>
+        <div class="db-action-desc">ساخت و ویرایش دسته‌بندی‌های محصولات برای سازماندهی بهتر فروشگاه</div>
+        <div class="db-action-arrow">مشاهده <i class="ti ti-arrow-left"></i></div>
+      </a>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
